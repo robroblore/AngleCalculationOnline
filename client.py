@@ -3,8 +3,9 @@ import utils
 from utils import receive_data, send_data, DataType
 import threading
 
+
 # Inherit from QObject to be able to use signals
-class Client():
+class Client:
     def __init__(self):
         super().__init__()
         self.FORMAT = utils.DEFAULT_FORMAT
@@ -19,15 +20,12 @@ class Client():
         # Create a socket object (AF_INET = IPv4, SOCK_STREAM = TCP)
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        # Dictionary to store the file paths to save files, with the hash of the file path as the key
-        # Used to know which file the server is sending us
-        self.paths_to_save_files = {}
-
         self.listener = None
 
-    def connect_to_server(self, login, server_ip):
+    def connect_to_server(self, login, server_ip, port):
         self.SERVER = server_ip
         self.LOGIN = login
+        self.PORT = port
 
         try:
             # Connect to the server
@@ -82,7 +80,6 @@ class Client():
                 send_data(self.client, data_size, self.HEADERLEN)
                 send_data(self.client, data, len(data))
 
-
             case DataType.DISCONNECT:
                 # Disconnect
                 self.isConnected = False
@@ -96,9 +93,6 @@ class Client():
     def receive(self):
         """
         Receive data from the server
-
-        Persistent header information:
-            - Data type {0: Debug, 1: Command, 2: Upload file, 3: Download file, 4: Files info, 5: Delete file, 6: Disconnect}
         """
 
         data_received = receive_data(self.client, 1)

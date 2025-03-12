@@ -4,6 +4,7 @@ import types
 import utils
 from utils import receive_data, send_data, DataType
 
+
 class Server:
     def __init__(self):
         self.FORMAT = utils.DEFAULT_FORMAT
@@ -75,13 +76,13 @@ class Server:
 
         # Get client name
         login = receive_data(conn, 64).decode(self.FORMAT).strip(' ')
-        if login in self.CLIENTS:
+        if login in self.CLIENTS.values():
             print(f"{login} is already connected to the server")
             send_data(conn, b'0', 1)
             conn.close()
             return
         send_data(conn, b'1', 1)
-        self.CLIENTS[login] = conn
+        self.CLIENTS[conn] = login
         print(f"{login} has connected to the server from {conn.getpeername()}")
 
     def close_client(self, sock: socket.socket) -> None:
@@ -91,7 +92,7 @@ class Server:
 
         self.selector.unregister(sock)
         sock.close()
-        for login, client in list(self.CLIENTS.items()):
-            if client == sock:
+        for conn, login in list(self.CLIENTS.items()):
+            if conn == sock:
                 print(f"{login} has disconnected from the server")
                 del self.CLIENTS[login]

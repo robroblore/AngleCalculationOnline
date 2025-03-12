@@ -1,6 +1,5 @@
-import interface
+import Interface
 
-
-window = interface.Window()
-
-window.mainloop()
+if __name__ == "__main__":
+    window = Interface.Window()
+    window.mainloop()
