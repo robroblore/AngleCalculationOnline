@@ -59,6 +59,12 @@ class Bridge:
             self.angl_lst = []
             self.theta = 0
 
+    def get_client_logins(self):
+        return self.localServer.CLIENTS.values()
+
+    def kick_client(self, login):
+        self.localServer.kick_client(login)
+
     def connect_client(self, login, server_ip, port):
         self.localClient.connect_to_server(login, server_ip, port)
 

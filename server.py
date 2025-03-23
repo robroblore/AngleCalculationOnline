@@ -148,3 +148,9 @@ class Server:
             if conn == sock:
                 print(f"{login} has disconnected from the server")
                 del self.CLIENTS[login]
+
+    def kick_client(self, login):
+        for conn, login in list(self.CLIENTS.items()):
+            if login == login:
+                self.send(conn, DataType.DISCONNECT)
+                self.client_disconnected(conn)
