@@ -22,7 +22,7 @@ class Client:
         # Create a socket object (AF_INET = IPv4, SOCK_STREAM = TCP)
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        self.calculation_callback = None
+        self.calculationCallback = None
 
         self.listener = None
 
@@ -140,8 +140,8 @@ class Client:
                         dtheta = float(command[14])
                         theta_min = float(command[15])
                         theta_max = float(command[16])
-                        if self.calculation_callback:
-                            self.calculation_callback(calculation_id, shape, terrain, D, rA, M, vi, theta, ymin, latitude, vwind, wa, dt, dtheta, theta_min, theta_max)
+                        if self.calculationCallback:
+                            self.calculationCallback(calculation_id, shape, terrain, D, rA, M, vi, theta, ymin, latitude, vwind, wa, dt, dtheta, theta_min, theta_max)
 
             case DataType.DISCONNECT:
                 # Disconnect

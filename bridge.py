@@ -8,8 +8,9 @@ from utils import DataType
 
 
 class Bridge:
-    def __init__(self, isServer=True, progressCallback=None):
+    def __init__(self, isServer=True, progressCallback=None, clientConnectedCallback=None):
         self.progressCallback = progressCallback
+        self.clientConnectedCallback = clientConnectedCallback
 
         self.isServer = isServer
 
@@ -30,11 +31,16 @@ class Bridge:
 
         if self.isServer:
             self.localServer = server.Server()
+            self.localServer.receivedDataCallback = self.server_received_data
+            self.localServer.clientConnectedCallback = self.onClientConnected
             thread = threading.Thread(target=self.localServer.start)
             thread.start()
         else:
             self.localClient = client.Client()
-            self.localClient.calculation_callback = self.start_client_calculation
+            self.localClient.calculationCallback = self.start_client_calculation
+
+    def onClientConnected(self):
+        self.clientConnectedCallback()
 
     def server_received_data(self, calculation_id, xmax_lst, ymax_lst, tmax_lst, angl_lst):
         calculation_id = int(calculation_id)
@@ -97,7 +103,7 @@ class Bridge:
         clientsLen = len(self.localServer.CLIENTS) + 1
         angles = 90
         anglesPerClient = angles // clientsLen
-        i = 1
+        i = 0
 
         for conn, login in list(self.localServer.CLIENTS.items()):
             theta_min = anglesPerClient * i
@@ -105,10 +111,11 @@ class Bridge:
             self.localServer.send(conn, DataType.COMMAND,
                                   f"start {i} {shape} {terrain} {D} {rA} {M} {vi} {theta} {ymin} {latitude} {vwind} {wa} {dt} {dtheta} {theta_min} {theta_max}")
             i += 1
-        self.data_parts = i
 
         self.start_client_calculation(0, shape, terrain, D, rA, M, vi, theta, ymin, latitude, vwind, wa, dt, dtheta,
-                                      0, angles - (anglesPerClient * i))
+                                      anglesPerClient * i, angles - (anglesPerClient * i))
+        i += 1
+        self.data_parts = i
         self.data_parts_received += 1
 
         return self.fig

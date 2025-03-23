@@ -236,7 +236,7 @@ def get_infos(queue, shape, terrain, D, rA, M, vi, theta, ymin, latitude, vwind,
 
     # xmax_lst, ymax_lst, tmax_lst, angl_lst = max_values(vi, ymin, dtheta, M, rA, ymin, dt, shape, D, G, vwind, terrain, wa, 0, 90)
     end = time.time()
-    print(f'{end - start}s')
+    # print(f'{end - start}s')
     queue.put((xmax_lst, ymax_lst, tmax_lst, angl_lst))
 
 

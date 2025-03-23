@@ -3,6 +3,7 @@ import bridge as br
 from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 
+
 class Window(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -13,7 +14,8 @@ class Window(tk.Tk):
         self.padx = 10
         self.pady = 20
 
-        self.bridge = br.Bridge(isServer=True, progressCallback=self.updateProgressbar)
+        self.bridge = br.Bridge(isServer=True, progressCallback=self.updateProgressbar,
+                                clientConnectedCallback=self.refresh_client_list)
         self.ipadress = self.bridge.getIP()
         self.port = self.bridge.getPORT()
 
@@ -22,11 +24,12 @@ class Window(tk.Tk):
         for i in range(13):
             self.rowconfigure(i, weight=1)
 
-        self.calculate = tk.Button(self, text='Calculate', command=self.start_calculations, font=('Calibri', int(self.fontsize * 1.2)), bg='lawn green')
+        self.calculate = tk.Button(self, text='Calculate', command=self.start_calculations,
+                                   font=('Calibri', int(self.fontsize * 1.2)), bg='lawn green')
         self.calculate.grid(row=2, column=0, columnspan=42, pady=(self.pady, 0), padx=self.padx, sticky='news')
 
-
-        self.ClientsList = tk.Listbox(self, width=50, height=6, selectbackground="red", exportselection=False, font=('Calibri', int(self.fontsize*0.8)), bg='lawn green')
+        self.ClientsList = tk.Listbox(self, width=50, height=6, selectbackground="red", exportselection=False,
+                                      font=('Calibri', int(self.fontsize * 0.8)), bg='lawn green')
         self.ClientsList.bind('<<ListboxSelect>>', self.print_Client)
         self.ClientsList.config(bg='papayawhip', fg='black')
         self.ClientsList.focus_set()
@@ -42,51 +45,61 @@ class Window(tk.Tk):
 
         self.option_add("*TCombobox*Listbox.Font", ('Calibri', 13))
 
-        self.iplabel = tk.Label(self, text='IP Adress', borderwidth=0, relief="solid", font=('Calibri', int(self.fontsize*0.8)), bg='ivory2')
+        self.iplabel = tk.Label(self, text='IP Adress', borderwidth=0, relief="solid",
+                                font=('Calibri', int(self.fontsize * 0.8)), bg='ivory2')
         self.iplabel.grid(row=3, column=21, columnspan=10, pady=(self.pady, 0), padx=self.padx, sticky="news")
-        self.ipadresslabel = tk.Label(self, text=self.ipadress, borderwidth=0, relief="solid", font=('Calibri', int(self.fontsize*0.8)), bg='ivory2')
+        self.ipadresslabel = tk.Label(self, text=self.ipadress, borderwidth=0, relief="solid",
+                                      font=('Calibri', int(self.fontsize * 0.8)), bg='ivory2')
         self.ipadresslabel.grid(row=4, column=21, columnspan=10, pady=(0, self.pady), padx=self.padx, sticky="news")
 
-        self.portlabel = tk.Label(self, text='Port', borderwidth=0, relief="solid", font=('Calibri', int(self.fontsize * 0.8)), bg='ivory2')
+        self.portlabel = tk.Label(self, text='Port', borderwidth=0, relief="solid",
+                                  font=('Calibri', int(self.fontsize * 0.8)), bg='ivory2')
         self.portlabel.grid(row=3, column=31, columnspan=10, pady=(self.pady, 0), padx=self.padx, sticky="news")
-        self.porttext = tk.Label(self, text=self.port, borderwidth=0, relief="solid", font=('Calibri', int(self.fontsize * 0.8)), bg='ivory2')
+        self.porttext = tk.Label(self, text=self.port, borderwidth=0, relief="solid",
+                                 font=('Calibri', int(self.fontsize * 0.8)), bg='ivory2')
         self.porttext.grid(row=4, column=31, columnspan=10, pady=(0, self.pady), padx=self.padx, sticky="news")
 
-        self.kickall = tk.Button(self, text='Join', command=self.kickclients, font=('Calibri', self.fontsize), bg='light green')
-        self.kickall.grid(row=5, rowspan=2, column=31, columnspan=10, pady=(0, self.pady), padx=self.padx, sticky="news")
+        self.kickall = tk.Button(self, text='Join', command=self.kickclients, font=('Calibri', self.fontsize),
+                                 bg='light green')
+        self.kickall.grid(row=5, rowspan=2, column=31, columnspan=10, pady=(0, self.pady), padx=self.padx,
+                          sticky="news")
 
-        self.kick = tk.Button(self, text='Kick', command=self.kickclient, font=('Calibri', self.fontsize),bg='red3')
+        self.kick = tk.Button(self, text='Kick', command=self.kickclient, font=('Calibri', self.fontsize), bg='red3')
         self.kick.grid(row=5, rowspan=2, column=21, columnspan=10, pady=(0, self.pady), padx=self.padx, sticky="news")
 
-        self.shapelabel = tk.Label(self, text='Shape', borderwidth=0, relief="solid", font=('Calibri', self.fontsize), bg='ivory2')
-        self.shapelabel.grid(row=3+4, column=0, columnspan=10, sticky="news", padx=self.padx)
-        self.shape = ttk.Combobox(self, font=('Calibri', int(self.fontsize*0.8)))
-        self.shape.grid(row=3+5, column=0, columnspan=10, sticky="news", padx=self.padx)
+        self.shapelabel = tk.Label(self, text='Shape', borderwidth=0, relief="solid", font=('Calibri', self.fontsize),
+                                   bg='ivory2')
+        self.shapelabel.grid(row=3 + 4, column=0, columnspan=10, sticky="news", padx=self.padx)
+        self.shape = ttk.Combobox(self, font=('Calibri', int(self.fontsize * 0.8)))
+        self.shape.grid(row=3 + 5, column=0, columnspan=10, sticky="news", padx=self.padx)
         self.shape['values'] = ['blunt', 'conic']
         self.shape.set('blunt')
 
-        self.terrainlabel = tk.Label(self, text='Terrain', borderwidth=0, relief="solid", font=('Calibri', self.fontsize), bg='ivory2')
-        self.terrainlabel.grid(row=3+4, column=10, columnspan=10, sticky="news", padx=self.padx)
-        self.terrain = ttk.Combobox(self, font=('Calibri', int(self.fontsize*0.8)))
-        self.terrain.grid(row=3+5, column=10, columnspan=10, sticky="news", padx=self.padx)
+        self.terrainlabel = tk.Label(self, text='Terrain', borderwidth=0, relief="solid",
+                                     font=('Calibri', self.fontsize), bg='ivory2')
+        self.terrainlabel.grid(row=3 + 4, column=10, columnspan=10, sticky="news", padx=self.padx)
+        self.terrain = ttk.Combobox(self, font=('Calibri', int(self.fontsize * 0.8)))
+        self.terrain.grid(row=3 + 5, column=10, columnspan=10, sticky="news", padx=self.padx)
         self.terrain['values'] = ['rough', 'flat']
         self.terrain.set('rough')
 
-        self.diameterlabel = tk.Label(self, text='Diameter [m]', borderwidth=0, relief="solid", font=('Calibri', self.fontsize), bg='ivory2')
-        self.diameterlabel.grid(row=3+4, column=21, columnspan=10, sticky="news", padx=self.padx)
-        self.diameter = ttk.Combobox(self, font=('Calibri', int(self.fontsize*0.8)))
-        self.diameter.grid(row=3+5, column=21, columnspan=10, sticky="news", padx=self.padx)
+        self.diameterlabel = tk.Label(self, text='Diameter [m]', borderwidth=0, relief="solid",
+                                      font=('Calibri', self.fontsize), bg='ivory2')
+        self.diameterlabel.grid(row=3 + 4, column=21, columnspan=10, sticky="news", padx=self.padx)
+        self.diameter = ttk.Combobox(self, font=('Calibri', int(self.fontsize * 0.8)))
+        self.diameter.grid(row=3 + 5, column=21, columnspan=10, sticky="news", padx=self.padx)
         self.diameter['values'] = []
         diametervalues = []
         for diameter in range(1, 100):
-            diametervalues.append(diameter/10)
+            diametervalues.append(diameter / 10)
         self.diameter['values'] = diametervalues
         self.diameter.set(0.1)
 
-        self.rAlabel = tk.Label(self, text='Reference Area [m²]', borderwidth=0, relief="solid", font=('Calibri', self.fontsize), bg='ivory2')
-        self.rAlabel.grid(row=3+4, column=31, columnspan=10, sticky="news", padx=self.padx)
-        self.rA = ttk.Combobox(self, font=('Calibri', int(self.fontsize*0.8)))
-        self.rA.grid(row=3+5, column=31, columnspan=10, sticky="news", padx=self.padx)
+        self.rAlabel = tk.Label(self, text='Reference Area [m²]', borderwidth=0, relief="solid",
+                                font=('Calibri', self.fontsize), bg='ivory2')
+        self.rAlabel.grid(row=3 + 4, column=31, columnspan=10, sticky="news", padx=self.padx)
+        self.rA = ttk.Combobox(self, font=('Calibri', int(self.fontsize * 0.8)))
+        self.rA.grid(row=3 + 5, column=31, columnspan=10, sticky="news", padx=self.padx)
         self.rA['values'] = []
         rAvalues = []
         for rA in range(1, 100):
@@ -94,25 +107,28 @@ class Window(tk.Tk):
         self.rA['values'] = rAvalues
         self.rA.set(0.0134)
 
-        self.masslabel = tk.Label(self, text='Mass [kg]', borderwidth=0, relief="solid", font=('Calibri', self.fontsize), bg='ivory2')
-        self.masslabel.grid(row=3+6, column=0, columnspan=10, pady=(self.pady, 0), sticky="news", padx=self.padx)
-        self.mass = ttk.Combobox(self, font=('Calibri', int(self.fontsize*0.8)))
-        self.mass.grid(row=3+7, column=0, columnspan=10, sticky="news", padx=self.padx)
+        self.masslabel = tk.Label(self, text='Mass [kg]', borderwidth=0, relief="solid",
+                                  font=('Calibri', self.fontsize), bg='ivory2')
+        self.masslabel.grid(row=3 + 6, column=0, columnspan=10, pady=(self.pady, 0), sticky="news", padx=self.padx)
+        self.mass = ttk.Combobox(self, font=('Calibri', int(self.fontsize * 0.8)))
+        self.mass.grid(row=3 + 7, column=0, columnspan=10, sticky="news", padx=self.padx)
         self.mass['values'] = []
         massvalues = []
         for mass in range(1, 10):
             massvalues.append(mass)
-            massvalues.append(mass*10)
-            massvalues.append(mass*100)
-            massvalues.append(mass*1000)
+            massvalues.append(mass * 10)
+            massvalues.append(mass * 100)
+            massvalues.append(mass * 1000)
         massvalues.sort()
         self.mass['values'] = massvalues
         self.mass.set(30)
 
-        self.initialspeedlabel = tk.Label(self, text='Initial Speed [m/s]', borderwidth=0, relief="solid", font=('Calibri', self.fontsize), bg='ivory2')
-        self.initialspeedlabel.grid(row=3+6, column=10, columnspan=10, pady=(self.pady, 0), sticky="news", padx=self.padx)
-        self.initialspeed = ttk.Combobox(self, font=('Calibri', int(self.fontsize*0.8)))
-        self.initialspeed.grid(row=3+7, column=10, columnspan=10, sticky="news", padx=self.padx)
+        self.initialspeedlabel = tk.Label(self, text='Initial Speed [m/s]', borderwidth=0, relief="solid",
+                                          font=('Calibri', self.fontsize), bg='ivory2')
+        self.initialspeedlabel.grid(row=3 + 6, column=10, columnspan=10, pady=(self.pady, 0), sticky="news",
+                                    padx=self.padx)
+        self.initialspeed = ttk.Combobox(self, font=('Calibri', int(self.fontsize * 0.8)))
+        self.initialspeed.grid(row=3 + 7, column=10, columnspan=10, sticky="news", padx=self.padx)
         self.initialspeed['values'] = []
         initialspeedvalues = []
         for initialspeed in range(10, 100, 10):
@@ -124,10 +140,11 @@ class Window(tk.Tk):
         self.initialspeed['values'] = initialspeedvalues
         self.initialspeed.set(930)
 
-        self.thetalabel = tk.Label(self, text='Initial Angle [°] (0-90)', borderwidth=0, relief="solid", font=('Calibri', self.fontsize), bg='ivory2')
-        self.thetalabel.grid(row=3+6, column=21, columnspan=10, pady=(self.pady, 0), sticky="news", padx=self.padx)
-        self.theta = ttk.Combobox(self, font=('Calibri', int(self.fontsize*0.8)))
-        self.theta.grid(row=3+7, column=21, columnspan=10, sticky="news", padx=self.padx)
+        self.thetalabel = tk.Label(self, text='Initial Angle [°] (0-90)', borderwidth=0, relief="solid",
+                                   font=('Calibri', self.fontsize), bg='ivory2')
+        self.thetalabel.grid(row=3 + 6, column=21, columnspan=10, pady=(self.pady, 0), sticky="news", padx=self.padx)
+        self.theta = ttk.Combobox(self, font=('Calibri', int(self.fontsize * 0.8)))
+        self.theta.grid(row=3 + 7, column=21, columnspan=10, sticky="news", padx=self.padx)
         self.theta['values'] = []
         thetavalues = []
         for theta in range(91):
@@ -136,10 +153,11 @@ class Window(tk.Tk):
         self.theta['values'] = thetavalues
         self.theta.set(30)
 
-        self.yminlabel = tk.Label(self, text='Initial Height [m]', borderwidth=0, relief="solid", font=('Calibri', self.fontsize), bg='ivory2')
-        self.yminlabel.grid(row=3+6, column=31, columnspan=10, pady=(self.pady, 0), sticky="news", padx=self.padx)
-        self.ymin = ttk.Combobox(self, font=('Calibri', int(self.fontsize*0.8)))
-        self.ymin.grid(row=3+7, column=31, columnspan=10, sticky="news", padx=self.padx)
+        self.yminlabel = tk.Label(self, text='Initial Height [m]', borderwidth=0, relief="solid",
+                                  font=('Calibri', self.fontsize), bg='ivory2')
+        self.yminlabel.grid(row=3 + 6, column=31, columnspan=10, pady=(self.pady, 0), sticky="news", padx=self.padx)
+        self.ymin = ttk.Combobox(self, font=('Calibri', int(self.fontsize * 0.8)))
+        self.ymin.grid(row=3 + 7, column=31, columnspan=10, sticky="news", padx=self.padx)
         self.ymin['values'] = []
         yminvalues = []
         for ymin in range(10):
@@ -148,10 +166,11 @@ class Window(tk.Tk):
         self.ymin['values'] = yminvalues
         self.ymin.set(0)
 
-        self.latitudelabel = tk.Label(self, text='Latitude [°] (0-90)', borderwidth=0, relief="solid", font=('Calibri', self.fontsize), bg='ivory2')
-        self.latitudelabel.grid(row=3+8, column=0, columnspan=10, pady=(self.pady, 0), sticky="news", padx=self.padx)
-        self.latitude = ttk.Combobox(self, font=('Calibri', int(self.fontsize*0.8)))
-        self.latitude.grid(row=3+9, column=0, columnspan=10, sticky="news", padx=self.padx, pady=(0, self.pady))
+        self.latitudelabel = tk.Label(self, text='Latitude [°] (0-90)', borderwidth=0, relief="solid",
+                                      font=('Calibri', self.fontsize), bg='ivory2')
+        self.latitudelabel.grid(row=3 + 8, column=0, columnspan=10, pady=(self.pady, 0), sticky="news", padx=self.padx)
+        self.latitude = ttk.Combobox(self, font=('Calibri', int(self.fontsize * 0.8)))
+        self.latitude.grid(row=3 + 9, column=0, columnspan=10, sticky="news", padx=self.padx, pady=(0, self.pady))
         self.latitude['values'] = []
         latitudevalues = []
         for latitude in range(91):
@@ -160,10 +179,11 @@ class Window(tk.Tk):
         self.latitude['values'] = latitudevalues
         self.latitude.set(0)
 
-        self.wspeedlabel = tk.Label(self, text='Wind Speed [m/s]', borderwidth=0, relief="solid", font=('Calibri', self.fontsize), bg='ivory2')
-        self.wspeedlabel.grid(row=3+8, column=10, columnspan=10, pady=(self.pady, 0), sticky="news", padx=self.padx)
-        self.wspeed = ttk.Combobox(self, font=('Calibri', int(self.fontsize*0.8)))
-        self.wspeed.grid(row=3+9, column=10, columnspan=10, sticky="news", padx=self.padx, pady=(0, self.pady))
+        self.wspeedlabel = tk.Label(self, text='Wind Speed [m/s]', borderwidth=0, relief="solid",
+                                    font=('Calibri', self.fontsize), bg='ivory2')
+        self.wspeedlabel.grid(row=3 + 8, column=10, columnspan=10, pady=(self.pady, 0), sticky="news", padx=self.padx)
+        self.wspeed = ttk.Combobox(self, font=('Calibri', int(self.fontsize * 0.8)))
+        self.wspeed.grid(row=3 + 9, column=10, columnspan=10, sticky="news", padx=self.padx, pady=(0, self.pady))
         self.wspeed['values'] = []
         wspeedvalues = []
         for wspeed in range(10):
@@ -172,23 +192,26 @@ class Window(tk.Tk):
         self.wspeed['values'] = wspeedvalues
         self.wspeed.set(0)
 
-        self.walabel = tk.Label(self, text='Wind Angle [°] (0-360)', borderwidth=0, relief="solid", font=('Calibri', self.fontsize), bg='ivory2')
-        self.walabel.grid(row=3+8, column=21, columnspan=10, pady=(self.pady, 0), sticky="news", padx=self.padx)
-        self.wa = ttk.Combobox(self, font=('Calibri', int(self.fontsize*0.8)))
-        self.wa.grid(row=3+9, column=21, columnspan=10, sticky="news", padx=self.padx, pady=(0, self.pady))
+        self.walabel = tk.Label(self, text='Wind Angle [°] (0-360)', borderwidth=0, relief="solid",
+                                font=('Calibri', self.fontsize), bg='ivory2')
+        self.walabel.grid(row=3 + 8, column=21, columnspan=10, pady=(self.pady, 0), sticky="news", padx=self.padx)
+        self.wa = ttk.Combobox(self, font=('Calibri', int(self.fontsize * 0.8)))
+        self.wa.grid(row=3 + 9, column=21, columnspan=10, sticky="news", padx=self.padx, pady=(0, self.pady))
         self.wa['values'] = []
         wavalues = []
         for wa in range(36):
-            wavalues.append(wa*10)
+            wavalues.append(wa * 10)
         wavalues.sort()
         self.wa['values'] = wavalues
         self.wa.set(0)
 
-        self.Precisionlabel = tk.Label(self, text='Precision (≥ 1)', borderwidth=0, relief="solid", font=('Calibri', self.fontsize), bg='ivory2')
-        self.Precisionlabel.grid(row=3+8, column=31, columnspan=10, pady=(self.pady, 0), sticky="news", padx=self.padx)
-        self.Precision = ttk.Combobox(self, font=('Calibri', int(self.fontsize*0.8)))
+        self.Precisionlabel = tk.Label(self, text='Precision (≥ 1)', borderwidth=0, relief="solid",
+                                       font=('Calibri', self.fontsize), bg='ivory2')
+        self.Precisionlabel.grid(row=3 + 8, column=31, columnspan=10, pady=(self.pady, 0), sticky="news",
+                                 padx=self.padx)
+        self.Precision = ttk.Combobox(self, font=('Calibri', int(self.fontsize * 0.8)))
         self.Precision['height'] = 19
-        self.Precision.grid(row=3+9, column=31, columnspan=10, sticky="news", padx=self.padx, pady=(0, self.pady))
+        self.Precision.grid(row=3 + 9, column=31, columnspan=10, sticky="news", padx=self.padx, pady=(0, self.pady))
         self.Precision['values'] = []
         Precisionvalues = []
         for Precision in range(1, 10):
@@ -202,13 +225,18 @@ class Window(tk.Tk):
 
         self.progressvar = tk.DoubleVar()
         self.progressbar = ttk.Progressbar(self, variable=self.progressvar, maximum=1)
-        self.progressbar.grid(row=3+10, column=0, columnspan=42, sticky="news", padx=self.padx, pady=(0, self.pady/2))
+        self.progressbar.grid(row=3 + 10, column=0, columnspan=42, sticky="news", padx=self.padx,
+                              pady=(0, self.pady / 2))
 
         self.start_calculations()
         self.progressvar.set(0)
 
     def updateProgressbar(self, val: int):
         self.progressvar.set(val)
+
+    def refresh_client_list(self):
+        # TODO: Refresh clients list (just get the whole client list again)
+        pass
 
     def charger_graph(self):
 
@@ -236,18 +264,22 @@ class Window(tk.Tk):
         latitude = float(self.latitude.get())
         vwind = float(self.wspeed.get())
         wa = float(self.wa.get())
-        dt = 1/float(self.Precision.get())
+        dt = 1 / float(self.Precision.get())
         dtheta = 1
-        self.fig = self.bridge.start_server_calculation(shape, terrain, D, rA, M, vi, theta, ymin, latitude, vwind, wa, dt, dtheta)
+        self.fig = self.bridge.start_server_calculation(shape, terrain, D, rA, M, vi, theta, ymin, latitude, vwind, wa,
+                                                        dt, dtheta)
         self.charger_graph()
 
     def add_Client(self):
         self.clientnb += 1
         self.ClientsList.insert(tk.END, f'client{self.clientnb}')
         # print(self.ClientsList.get(tk.END, tk.END))
+
     def print_Client(self, client):
         print(f"Le client '{self.ClientsList.get(self.ClientsList.curselection()[0])}' a été sélectionné")
+
     def kickclient(self):
         self.ClientsList.delete(self.ClientsList.curselection()[0])
+
     def kickclients(self):
         print(self.ClientsList.get(0))

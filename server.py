@@ -11,7 +11,8 @@ class Server:
         self.HEADERLEN = utils.DEFAULT_HEADERLEN
         self.PORT = utils.DEFAULT_PORT
 
-        self.received_data_callback = None
+        self.receivedDataCallback = None
+        self.clientConnectedCallback = None
 
         self.SERVER_IP = socket.gethostbyname(socket.gethostname())
 
@@ -40,7 +41,7 @@ class Server:
                     data_length = int(receive_data(conn, self.HEADERLEN).decode(self.FORMAT))
                     if data_length:
                         command = receive_data(conn, data_length).decode(self.FORMAT)
-                        print(f"[COMMAND] {command}")
+                        # print(f"[COMMAND] {command}")
                         params = command[7:]
                         if command[0] == "return":
                             params = params.split(":::")
@@ -50,8 +51,8 @@ class Server:
                             ymax_lst = list(map(float, params[1][1:-1].split(", ")))
                             tmax_lst = list(map(float, params[2][1:-1].split(", ")))
                             angl_lst = list(map(float, params[3][1:-1].split(", ")))
-                            if self.received_data_callback:
-                                self.received_data_callback(calculation_id, xmax_lst, ymax_lst, tmax_lst, angl_lst)
+                            if self.receivedDataCallback:
+                                self.receivedDataCallback(calculation_id, xmax_lst, ymax_lst, tmax_lst, angl_lst)
                             print(f"Received data from {self.CLIENTS[conn]}")
                             print(f"xmax_lst: {xmax_lst}")
                             print(f"ymax_lst: {ymax_lst}")
