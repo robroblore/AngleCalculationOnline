@@ -15,10 +15,14 @@ class Client:
         self.SERVER = None
         self.LOGIN = None
 
+        self.IP = socket.gethostbyname(socket.gethostname())
+
         self.isConnected = False
 
         # Create a socket object (AF_INET = IPv4, SOCK_STREAM = TCP)
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        self.calculation_callback = None
 
         self.listener = None
 
@@ -117,6 +121,33 @@ class Client:
                 if data_length:
                     command = receive_data(self.client, data_length).decode(self.FORMAT)
                     print(f"[COMMAND] {command}")
+
+                    command = command.split()
+                    if command[0] == "start":
+                        calculation_id = command[1]
+                        shape = command[2]
+                        terrain = command[3]
+                        D = float(command[4])
+                        rA = float(command[5])
+                        M = float(command[6])
+                        vi = float(command[7])
+                        theta = float(command[8])
+                        ymin = float(command[9])
+                        latitude = float(command[10])
+                        vwind = float(command[11])
+                        wa = float(command[12])
+                        dt = float(command[13])
+                        dtheta = float(command[14])
+                        theta_min = float(command[15])
+                        theta_max = float(command[16])
+                        if self.calculation_callback:
+                            self.calculation_callback(calculation_id, shape, terrain, D, rA, M, vi, theta, ymin, latitude, vwind, wa, dt, dtheta, theta_min, theta_max)
+
+            case DataType.DISCONNECT:
+                # Disconnect
+                self.isConnected = False
+                self.client.close()
+                quit()
 
             case _:
                 # Invalid data type

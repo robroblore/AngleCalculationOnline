@@ -1,5 +1,5 @@
 import tkinter as tk
-import Alex
+import bridge as br
 from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 
@@ -13,16 +13,16 @@ class Window(tk.Tk):
         self.padx = 10
         self.pady = 20
 
-        import socket
-        self.ipadress = socket.gethostbyname(socket.gethostname())
-        self.port = 50000
+        self.bridge = br.Bridge(isServer=True, progressCallback=self.updateProgressbar)
+        self.ipadress = self.bridge.getIP()
+        self.port = self.bridge.getPORT()
 
         for i in range(42):
             self.columnconfigure(i, weight=1)
         for i in range(13):
             self.rowconfigure(i, weight=1)
 
-        self.calculate = tk.Button(self, text='Calculate', command=self.calcul, font=('Calibri', int(self.fontsize*1.2)), bg='lawn green')
+        self.calculate = tk.Button(self, text='Calculate', command=self.start_calculations, font=('Calibri', int(self.fontsize * 1.2)), bg='lawn green')
         self.calculate.grid(row=2, column=0, columnspan=42, pady=(self.pady, 0), padx=self.padx, sticky='news')
 
 
@@ -204,8 +204,11 @@ class Window(tk.Tk):
         self.progressbar = ttk.Progressbar(self, variable=self.progressvar, maximum=1)
         self.progressbar.grid(row=3+10, column=0, columnspan=42, sticky="news", padx=self.padx, pady=(0, self.pady/2))
 
-        self.calcul()
+        self.start_calculations()
         self.progressvar.set(0)
+
+    def updateProgressbar(self, val: int):
+        self.progressvar.set(val)
 
     def charger_graph(self):
 
@@ -221,7 +224,7 @@ class Window(tk.Tk):
 
         canvas.draw()
 
-    def calcul(self):
+    def start_calculations(self):
         shape = self.shape.get()
         terrain = self.terrain.get()
         D = float(self.diameter.get())
@@ -235,7 +238,7 @@ class Window(tk.Tk):
         wa = float(self.wa.get())
         dt = 1/float(self.Precision.get())
         dtheta = 1
-        self.fig = Alex.go(shape, terrain, D, rA, M, vi, theta, ymin, latitude, vwind, wa, dt, dtheta)
+        self.fig = self.bridge.start_server_calculation(shape, terrain, D, rA, M, vi, theta, ymin, latitude, vwind, wa, dt, dtheta)
         self.charger_graph()
 
     def add_Client(self):

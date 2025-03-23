@@ -11,6 +11,8 @@ class Server:
         self.HEADERLEN = utils.DEFAULT_HEADERLEN
         self.PORT = utils.DEFAULT_PORT
 
+        self.received_data_callback = None
+
         self.SERVER_IP = socket.gethostbyname(socket.gethostname())
 
         self.CLIENTS = dict()
@@ -24,7 +26,7 @@ class Server:
 
             match data_type:
                 case DataType.DISCONNECT:
-                    self.close_client(conn)
+                    self.client_disconnected(conn)
 
                 case DataType.DEBUG:
                     # Debug message
@@ -39,6 +41,57 @@ class Server:
                     if data_length:
                         command = receive_data(conn, data_length).decode(self.FORMAT)
                         print(f"[COMMAND] {command}")
+                        params = command[7:]
+                        if command[0] == "return":
+                            params = params.split(":::")
+                            print(params)
+                            calculation_id = params
+                            xmax_lst = list(map(float, params[0][1:-1].split(", ")))
+                            ymax_lst = list(map(float, params[1][1:-1].split(", ")))
+                            tmax_lst = list(map(float, params[2][1:-1].split(", ")))
+                            angl_lst = list(map(float, params[3][1:-1].split(", ")))
+                            if self.received_data_callback:
+                                self.received_data_callback(calculation_id, xmax_lst, ymax_lst, tmax_lst, angl_lst)
+                            print(f"Received data from {self.CLIENTS[conn]}")
+                            print(f"xmax_lst: {xmax_lst}")
+                            print(f"ymax_lst: {ymax_lst}")
+                            print(f"tmax_lst: {tmax_lst}")
+                            print(f"angl_lst: {angl_lst}")
+
+
+
+
+    def send(self, conn: socket.socket, data_type: int, data: str = ""):
+        """
+        Sent data to the server
+        """
+
+        send_data(conn, str(data_type).encode(self.FORMAT), len(str(data_type)))
+
+        match data_type:
+            case DataType.DEBUG:
+                # Debug message
+                data = data.encode(self.FORMAT)
+                data_size = str(len(data)).encode(self.FORMAT)
+
+                send_data(conn, data_size, self.HEADERLEN)
+                send_data(conn, data, len(data))
+
+            case DataType.COMMAND:
+                # Command
+                data = data.encode(self.FORMAT)
+                data_size = str(len(data)).encode(self.FORMAT)
+
+                send_data(conn, data_size, self.HEADERLEN)
+                send_data(conn, data, len(data))
+
+            case DataType.DISCONNECT:
+                pass
+
+            case _:
+                # Invalid data type
+                print("Invalid data type")
+                return
 
     def start(self):
         """
@@ -62,7 +115,7 @@ class Server:
                         try:
                             self.handle_client(key, mask)
                         except ConnectionResetError:
-                            self.close_client(key.fileobj)
+                            self.client_disconnected(key.fileobj)
 
     def accept_connection(self, listener_socket: socket.socket) -> None:
         """
@@ -85,11 +138,10 @@ class Server:
         self.CLIENTS[conn] = login
         print(f"{login} has connected to the server from {conn.getpeername()}")
 
-    def close_client(self, sock: socket.socket) -> None:
+    def client_disconnected(self, sock: socket.socket) -> None:
         """
         Closes and unregisters a client socket.
         """
-
         self.selector.unregister(sock)
         sock.close()
         for conn, login in list(self.CLIENTS.items()):
